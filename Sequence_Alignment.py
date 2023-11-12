@@ -3,7 +3,7 @@ from Bio import pairwise2
 
 # Define the sequences and scoring rules
 sequence_S = "AGCGA" # Rows
-sequence_T = "AC" # Columns
+sequence_T = "ACGAA" # Columns
 match_score = 1
 mismatch_score = -1
 gap_penalty = -2
@@ -51,7 +51,7 @@ def needleman_wunsch(seq1, seq2):
     alignment_seq2 = ""
 
     i, j = len_seq1, len_seq2
-    
+
     while i > 0 and j > 0:
         current_score = score_matrix[i][j]
         # If moving to the left (gap in sequence 2), add a gap in sequence 2.
