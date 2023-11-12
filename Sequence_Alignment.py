@@ -1,5 +1,6 @@
 import numpy as np
 from Bio import pairwise2
+from Bio.pairwise2 import format_alignment
 
 # Define the sequences and scoring rules
 sequence_S = "AGCGA" # Rows
@@ -73,6 +74,7 @@ def needleman_wunsch(seq1, seq2):
     return alignment_seq1, alignment_seq2
 
 # -------------------------------------- Smith-Waterman Algorithm for local alignment --------------------------------------
+#Note:  Negative Values Become 0 
 def smith_waterman(seq1, seq2):
     len_seq1 = len(seq1)
     len_seq2 = len(seq2)
@@ -80,6 +82,9 @@ def smith_waterman(seq1, seq2):
     # Create a matrix to store the alignment scores
     score_matrix = np.zeros((len_seq1 + 1, len_seq2 + 1))
 
+    print("Init Matrix Now: \n",score_matrix)
+
+    # Unlike Needlemen, The Smith Initializes the matrix with 0's
     max_score = 0
     max_i, max_j = 0, 0
 
@@ -102,11 +107,11 @@ def smith_waterman(seq1, seq2):
         current_score = score_matrix[i][j]
         if current_score == 0:
             break
-        if i > 0 and score_matrix[i - 1][j] + gap_penalty == current_score:
+        if i > 0 and score_matrix[i - 1][j] + gap_penalty == current_score: #/\
             alignment_seq1 = seq1[i - 1] + alignment_seq1
             alignment_seq2 = "-" + alignment_seq2
             i -= 1
-        elif j > 0 and score_matrix[i][j - 1] + gap_penalty == current_score:
+        elif j > 0 and score_matrix[i][j - 1] + gap_penalty == current_score: # <-
             alignment_seq1 = "-" + alignment_seq1
             alignment_seq2 = seq2[j - 1] + alignment_seq2
             j -= 1
@@ -115,24 +120,43 @@ def smith_waterman(seq1, seq2):
             alignment_seq2 = seq2[j - 1] + alignment_seq2
             i -= 1
             j -= 1
-
+    print("Matrix After DP : \n",score_matrix)
     return alignment_seq1, alignment_seq2
 
 
 #------------------------------------------------------------------------------------------------------------------
+
+print(" --------------- Needleman-Wunsch (Global Alignment) --------------- ")
+global_alignment_seq1, global_alignment_seq2 = needleman_wunsch(sequence_S, sequence_T)
+print("Result After TraceBack:")
+print(global_alignment_seq1)
+print(global_alignment_seq2)
+
+print("  --------------- Smith-Waterman (Local Alignment) --------------- ")
+local_alignment_seq1, local_alignment_seq2 = smith_waterman(sequence_S, sequence_T)
+print("Result After TraceBack:")
+print(local_alignment_seq1)
+print(local_alignment_seq2)
+
+
+# ---------------------------- Bio ----------------------------
+print("  --------------- Bio (Global Alignment) & (Local Alignment) ---------------")
+# ----------  Global ----------
 # Using Bio.pairwise2 for sequence alignment
 alignments = pairwise2.align.globalxx(sequence_S, sequence_T)
 for alignment in alignments:
     print(f"Alignment: {alignment[0]}\nAlignment: {alignment[1]}\n")
 
+# ----------  Local ----------
+
+def smith_waterman_bio(sequence_S, sequence_T, match_score=2, mismatch_score=-1, gap_open_penalty=-0.5, gap_extend_penalty=-0.1):
+    alignments = pairwise2.align.localms(sequence_S, sequence_T, match_score, mismatch_score, gap_open_penalty, gap_extend_penalty)
+    for alignment in alignments:
+        print(format_alignment(*alignment))
+
 # Example usage
-global_alignment_seq1, global_alignment_seq2 = needleman_wunsch(sequence_S, sequence_T)
-local_alignment_seq1, local_alignment_seq2 = smith_waterman(sequence_S, sequence_T)
+sequence_S = "ACGGGT"
+sequence_T = "ACG"
 
-print("Needleman-Wunsch (Global Alignment):")
-print(global_alignment_seq1)
-print(global_alignment_seq2)
-
-print("Smith-Waterman (Local Alignment):")
-print(local_alignment_seq1)
-print(local_alignment_seq2)
+print("Smith-Waterman BioPython:")
+smith_waterman_bio(sequence_S, sequence_T)
