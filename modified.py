@@ -11,17 +11,28 @@ gap_penalty = -2
 '''
 
 # TP
-sequence_S = "ACG" # Rows
-sequence_T = "ACGGGT" # Columns
+sequence_S = "TATGAACTA" # Rows
+sequence_T = "TGA" # Columns
 #ACG
 #ACGGGT
 match_score = 1
 mismatch_score = 0
 gap_penalty = 0
 
+
 # -------------------------------------- Needleman-Wunsch Algorithm for global alignment --------------------------------------
 # Note: The Algorithm Consistes Of 3 Stages :  [Initialization | Matrix Filling | Trace Back]
 #
+def print_arrow(arrow):
+    if arrow == 1:
+        return '↑'  # Up arrow
+    elif arrow == 2:
+        return '←'  # Left arrow
+    elif arrow == 3:
+        return '↖'  # Diagonal arrow
+    else:
+        return ' '
+    
 def needleman_wunsch(seq1, seq2):
     len_seq1 = len(seq1)
     len_seq2 = len(seq2)
@@ -29,6 +40,7 @@ def needleman_wunsch(seq1, seq2):
     # ----------- [ Initialization ] -----------
     # We Create a matrix to store the alignment scores [ Initialization ]
     score_matrix = np.zeros((len_seq1 + 1, len_seq2 + 1))
+    arrow_matrix = np.zeros((len_seq1 + 1, len_seq2 + 1))
 
     #print("NpZero Score_Matrix:\n",score_matrix)
 
@@ -69,19 +81,27 @@ def needleman_wunsch(seq1, seq2):
         if i > 0 and score_matrix[i - 1][j] + gap_penalty == current_score:     #/\
             alignment_seq1 = seq1[i - 1] + alignment_seq1
             alignment_seq2 = "-" + alignment_seq2
+            arrow_matrix[i][j] = 1  # Up arrow
             i -= 1
         #If moving upward (gap in sequence 1), add a gap in sequence 1.
         elif j > 0 and score_matrix[i][j - 1] + gap_penalty == current_score: 
             alignment_seq1 = "-" + alignment_seq1
             alignment_seq2 = seq2[j - 1] + alignment_seq2
+            arrow_matrix[i][j] = 2  # Left arrow
             j -= 1
         else: # If moving diagonally (match or mismatch), add the corresponding characters to both sequences.
             alignment_seq1 = seq1[i - 1] + alignment_seq1
             alignment_seq2 = seq2[j - 1] + alignment_seq2
+            arrow_matrix[i][j] = 3  # Diagonal arrow
+
             i -= 1
             j -= 1
-
+        
+    print("Arrow Matrix:")
+    for row in arrow_matrix:
+        print(' '.join([print_arrow(arrow) for arrow in row]))
     return alignment_seq1, alignment_seq2
+    
 
 # -------------------------------------- Smith-Waterman Algorithm for local alignment --------------------------------------
 #Note:  Negative Values Become 0 
@@ -91,6 +111,7 @@ def smith_waterman(seq1, seq2):
 
     # Create a matrix to store the alignment scores
     score_matrix = np.zeros((len_seq1 + 1, len_seq2 + 1))
+    arrow_matrix = np.zeros((len_seq1 + 1, len_seq2 + 1))
 
     print("Init Matrix Now: \n",score_matrix)
 
@@ -121,17 +142,27 @@ def smith_waterman(seq1, seq2):
         if i > 0 and score_matrix[i - 1][j] + gap_penalty == current_score: #/\
             alignment_seq1 = seq1[i - 1] + alignment_seq1
             alignment_seq2 = "-" + alignment_seq2
+            arrow_matrix[i][j] = 1  # Up arrow
             i -= 1  
         elif j > 0 and score_matrix[i][j - 1] + gap_penalty == current_score: # <-
             alignment_seq1 = "-" + alignment_seq1
             alignment_seq2 = seq2[j - 1] + alignment_seq2
+            
+            arrow_matrix[i][j] = 2  # Left arrow
+            
             j -= 1
         else:
             alignment_seq1 = seq1[i - 1] + alignment_seq1
             alignment_seq2 = seq2[j - 1] + alignment_seq2
+
+            arrow_matrix[i][j] = 3  # Diagonal arrow
             i -= 1
             j -= 1
     print("Matrix After DP : \n",score_matrix)
+
+    print("Arrow Matrix:")
+    for row in arrow_matrix:
+        print(' '.join([print_arrow(arrow) for arrow in row]))
     return alignment_seq1, alignment_seq2
 
 
